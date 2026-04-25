@@ -1,19 +1,21 @@
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File
+import asyncio
+import os
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Any
+
+import asyncpg
+from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from typing import Dict, Any, List, Optional
-import asyncpg
-import asyncio
-import os
-import tempfile
-import subprocess
-from pathlib import Path
 
 app = FastAPI(title="SQL Isolation Level Demo")
 
 # Используем только Jinja2Templates (без отдельного Environment)
 templates = Jinja2Templates(directory="templates")
+
 
 class DatabaseConfig:
     def __init__(self):
@@ -23,29 +25,36 @@ class DatabaseConfig:
         self.password = os.getenv("DB_PASSWORD", "password")
         self.database = os.getenv("DB_NAME", "isolation_demo")
 
-    def get_url(self):
+    def get_url(self) -> str:
         return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
 
+
 db_config = DatabaseConfig()
+
 
 class SQLQuery(BaseModel):
     query1: str
     query2: str
     isolation_level: str
 
-ISOLATION_LEVELS = ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SERIALIZABLE"]
+
+ISOLATION_LEVELS = [
+    "READ UNCOMMITTED",
+    "READ COMMITTED",
+    "REPEATABLE READ",
+    "SERIALIZABLE",
+]
+
 
 async def execute_query_with_isolation(
-        query: str,
-        isolation_level: str,
-        conn: asyncpg.Connection
-) -> Dict[str, Any]:
+    query: str, isolation_level: str, conn: asyncpg.Connection
+) -> dict[str, Any]:
     """Выполняет SQL запрос в транзакции с заданным уровнем изоляции"""
     try:
         await conn.execute(f"SET TRANSACTION ISOLATION LEVEL {isolation_level}")
 
         query_upper = query.strip().upper()
-        is_select = query_upper.startswith('SELECT') or query_upper.startswith('WITH')
+        is_select = query_upper.startswith("SELECT") or query_upper.startswith("WITH")
 
         if is_select:
             result = await conn.fetch(query)
@@ -55,7 +64,7 @@ async def execute_query_with_isolation(
                 "rows_count": len(rows),
                 "data": rows,
                 "error": None,
-                "query_type": "SELECT"
+                "query_type": "SELECT",
             }
         else:
             result = await conn.execute(query)
@@ -65,7 +74,7 @@ async def execute_query_with_isolation(
                 "data": [],
                 "error": None,
                 "query_type": "MODIFICATION",
-                "message": result
+                "message": result,
             }
     except Exception as e:
         return {
@@ -73,14 +82,15 @@ async def execute_query_with_isolation(
             "rows_count": 0,
             "data": [],
             "error": str(e),
-            "query_type": "ERROR"
+            "query_type": "ERROR",
         }
 
+
 @app.post("/execute")
-async def execute_queries(sql_query: SQLQuery):
+async def execute_queries(sql_query: SQLQuery) -> JSONResponse:
     """Выполняет два SQL запроса параллельно"""
 
-    async def run_in_connection(query: str, level: str):
+    async def run_in_connection(query: str, level: str) -> JSONResponse | dict:
         try:
             conn = await asyncpg.connect(db_config.get_url())
             try:
@@ -94,124 +104,137 @@ async def execute_queries(sql_query: SQLQuery):
     results = await asyncio.gather(
         run_in_connection(sql_query.query1, sql_query.isolation_level),
         run_in_connection(sql_query.query2, sql_query.isolation_level),
-        return_exceptions=False
+        return_exceptions=False,
     )
 
     formatted_results = []
     for idx, result in enumerate(results, 1):
         if isinstance(result, Exception):
-            formatted_results.append({
-                "query_num": idx,
-                "success": False,
-                "error": str(result),
-                "data": [],
-                "rows_count": 0,
-                "query_type": "ERROR"
-            })
+            formatted_results.append(
+                {
+                    "query_num": idx,
+                    "success": False,
+                    "error": str(result),
+                    "data": [],
+                    "rows_count": 0,
+                    "query_type": "ERROR",
+                }
+            )
         else:
-            formatted_results.append({
-                "query_num": idx,
-                **result
-            })
+            formatted_results.append({"query_num": idx, **result})
 
     return JSONResponse(content={"results": formatted_results})
 
+
 @app.post("/upload_dump")
-async def upload_dump(file: UploadFile = File(...)):
+async def upload_dump(file: UploadFile = File(...)) -> JSONResponse:
     """Загружает и восстанавливает дамп базы данных"""
     temp_dir = tempfile.mkdtemp()
     dump_path = Path(temp_dir) / file.filename
 
     try:
         content = await file.read()
-        with open(dump_path, 'wb') as f:
+        with open(dump_path, "wb") as f:
             f.write(content)
 
-        if file.filename.endswith('.sql'):
+        if file.filename.endswith(".sql"):
             cmd = [
-                'psql',
+                "psql",
                 f"-h{db_config.host}",
                 f"-p{db_config.port}",
                 f"-U{db_config.user}",
                 f"-d{db_config.database}",
-                '-f', str(dump_path)
+                "-f",
+                str(dump_path),
             ]
             env_vars = os.environ.copy()
-            env_vars['PGPASSWORD'] = db_config.password
+            env_vars["PGPASSWORD"] = db_config.password
 
             result = subprocess.run(cmd, env=env_vars, capture_output=True, text=True)
 
             if result.returncode == 0:
-                return JSONResponse(content={
-                    "status": "success",
-                    "message": f"Дамп {file.filename} успешно загружен и восстановлен",
-                    "output": result.stdout
-                })
+                return JSONResponse(
+                    content={
+                        "status": "success",
+                        "message": f"Дамп {file.filename} успешно загружен и восстановлен",
+                        "output": result.stdout,
+                    }
+                )
             else:
-                return JSONResponse(content={
-                    "status": "error",
-                    "message": f"Ошибка восстановления дампа",
-                    "error": result.stderr
-                }, status_code=400)
+                return JSONResponse(
+                    content={
+                        "status": "error",
+                        "message": "Ошибка восстановления дампа",
+                        "error": result.stderr,
+                    },
+                    status_code=400,
+                )
         else:
-            return JSONResponse(content={
-                "status": "error",
-                "message": "Поддерживаются только .sql файлы"
-            }, status_code=400)
+            return JSONResponse(
+                content={
+                    "status": "error",
+                    "message": "Поддерживаются только .sql файлы",
+                },
+                status_code=400,
+            )
 
     except Exception as e:
-        return JSONResponse(content={
-            "status": "error",
-            "message": f"Ошибка: {str(e)}"
-        }, status_code=500)
+        return JSONResponse(
+            content={"status": "error", "message": f"Ошибка: {str(e)}"}, status_code=500
+        )
     finally:
         import shutil
+
         shutil.rmtree(temp_dir, ignore_errors=True)
 
+
 @app.post("/connect_db")
-async def connect_db(db_params: dict):
+async def connect_db(db_params: dict) -> JSONResponse:
     """Подключается к указанной базе данных"""
     try:
-        db_config.host = db_params.get('host', 'localhost')
-        db_config.port = db_params.get('port', '5432')
-        db_config.user = db_params.get('user', 'postgres')
-        db_config.password = db_params.get('password', '')
-        db_config.database = db_params.get('database', 'postgres')
+        db_config.host = db_params.get("host", "localhost")
+        db_config.port = db_params.get("port", "5432")
+        db_config.user = db_params.get("user", "postgres")
+        db_config.password = db_params.get("password", "")
+        db_config.database = db_params.get("database", "postgres")
 
         conn = await asyncpg.connect(db_config.get_url())
         try:
             version = await conn.fetchval("SELECT version()")
             tables = await conn.fetch("""
-                SELECT table_name 
-                FROM information_schema.tables 
+                SELECT table_name
+                FROM information_schema.tables
                 WHERE table_schema = 'public'
                 ORDER BY table_name
             """)
         finally:
             await conn.close()
 
-        return JSONResponse(content={
-            "status": "success",
-            "message": f"Подключено к {db_config.database}",
-            "version": version,
-            "tables": [{"name": t['table_name']} for t in tables]
-        })
+        return JSONResponse(
+            content={
+                "status": "success",
+                "message": f"Подключено к {db_config.database}",
+                "version": version,
+                "tables": [{"name": t["table_name"]} for t in tables],
+            }
+        )
     except Exception as e:
-        return JSONResponse(content={
-            "status": "error",
-            "message": f"Ошибка подключения: {str(e)}"
-        }, status_code=400)
+        return JSONResponse(
+            content={"status": "error", "message": f"Ошибка подключения: {str(e)}"},
+            status_code=400,
+        )
+
 
 @app.get("/get_tables")
-async def get_tables():
+async def get_tables() -> JSONResponse:
     """Получает список всех таблиц в текущей БД"""
     try:
         conn = await asyncpg.connect(db_config.get_url())
         try:
             tables = await conn.fetch("""
-                SELECT 
+                SELECT
                     table_name,
-                    (SELECT count(*) FROM information_schema.columns 
+                    (SELECT count(*) FROM information_schema.columns
                      WHERE table_name = t.table_name) as column_count
                 FROM information_schema.tables t
                 WHERE table_schema = 'public'
@@ -220,20 +243,27 @@ async def get_tables():
         finally:
             await conn.close()
 
-        return JSONResponse(content={
-            "status": "success",
-            "tables": [{"name": t['table_name'], "columns": t['column_count']} for t in tables]
-        })
+        return JSONResponse(
+            content={
+                "status": "success",
+                "tables": [
+                    {"name": t["table_name"], "columns": t["column_count"]}
+                    for t in tables
+                ],
+            }
+        )
     except Exception as e:
-        return JSONResponse(content={
-            "status": "error",
-            "message": str(e)
-        }, status_code=400)
+        return JSONResponse(
+            content={"status": "error", "message": str(e)}, status_code=400
+        )
+
 
 # пока с шаблонами не разобрался
 @app.get("/", response_class=HTMLResponse)
-async def get_demo_page(request: Request):
-    options_html = "\n".join([f'<option value="{level}">{level}</option>' for level in ISOLATION_LEVELS])
+async def get_demo_page(request: Request) -> HTMLResponse:
+    options_html = "\n".join(
+        [f'<option value="{level}">{level}</option>' for level in ISOLATION_LEVELS]
+    )
 
     html = f"""
     <!DOCTYPE html>
@@ -331,8 +361,10 @@ async def get_demo_page(request: Request):
     """
     return HTMLResponse(content=html)
 
+
 if __name__ == "__main__":
     import uvicorn
+
     print("🚀 Запуск сервера на http://localhost:8000")
     print("📝 Убедитесь, что PostgreSQL запущен")
     uvicorn.run(app, host="127.0.0.1", port=8000)
