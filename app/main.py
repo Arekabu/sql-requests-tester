@@ -281,11 +281,11 @@ async def get_demo_page(request: Request) -> HTMLResponse:
         <h1>SQL Isolation Level Demo</h1>
         <h3>Подключение к PostgreSQL</h3>
         <div>
-            <input type="text" id="host" placeholder="Хост" value="localhost">
+            <input type="text" id="host" placeholder="Хост" value="db">
             <input type="text" id="port" placeholder="Порт" value="5432">
             <input type="text" id="user" placeholder="Пользователь" value="postgres">
-            <input type="password" id="password" placeholder="Пароль">
-            <input type="text" id="database" placeholder="БД" value="postgres">
+            <input type="password" id="password" placeholder="Пароль" value="postgres123">
+            <input type="text" id="database" placeholder="БД" value="isolation_demo">
             <button onclick="connect()">Подключиться</button>
         </div>
         <h3>Уровень изоляции</h3>

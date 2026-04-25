@@ -13,10 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Копируем код приложения
 COPY ./app /app/app
-COPY ./templates /app/templates
-
-# Создаем директорию для временных файлов
-RUN mkdir -p /tmp/dumps
 
 # Открываем порт
 EXPOSE 8000
