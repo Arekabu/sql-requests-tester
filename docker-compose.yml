@@ -13,9 +13,12 @@ services:
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 40s
+    stop_grace_period: 60s
+    restart: unless-stopped
 
   web:
     build: .
@@ -30,9 +33,11 @@ services:
       DB_NAME: isolation_demo
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./app:/app/app
+    stop_grace_period: 30s
 
 volumes:
   postgres_data:

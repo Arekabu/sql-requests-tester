@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><title>SQL Isolation Demo</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>SQL Isolation Level Demo</h1>
+    <h3>Подключение к PostgreSQL</h3>
+    <div>
+        <input type="text" id="host" placeholder="Хост" value="db">
+        <input type="text" id="port" placeholder="Порт" value="5432">
+        <input type="text" id="user" placeholder="Пользователь" value="postgres">
+        <input type="password" id="password" placeholder="Пароль" value="postgres123">
+        <input type="text" id="database" placeholder="БД" value="isolation_demo">
+        <button onclick="connect()">Подключиться</button>
+    </div>
+    <h3>Уровень изоляции</h3>
+    <select id="isolation">{options_html}</select>
+    <h3>Запрос 1</h3>
+    <textarea id="query1" rows="5" cols="80" placeholder="SELECT * FROM ..."></textarea>
+    <h3>Запрос 2</h3>
+    <textarea id="query2" rows="5" cols="80" placeholder="UPDATE ..."></textarea>
+    <br><button onclick="execute()">Выполнить параллельно</button>
+    <div id="results"></div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
