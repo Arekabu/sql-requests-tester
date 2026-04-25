@@ -6,15 +6,12 @@ from pathlib import Path
 from typing import Any
 
 import asyncpg
+import uvicorn
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 app = FastAPI(title="SQL Isolation Level Demo")
-
-# Используем только Jinja2Templates (без отдельного Environment)
-templates = Jinja2Templates(directory="templates")
 
 
 class DatabaseConfig:
@@ -192,11 +189,11 @@ async def upload_dump(file: UploadFile = File(...)) -> JSONResponse:
 async def connect_db(db_params: dict) -> JSONResponse:
     """Подключается к указанной базе данных"""
     try:
-        db_config.host = db_params.get("host", "localhost")
+        db_config.host = db_params.get("host", "db")
         db_config.port = db_params.get("port", "5432")
         db_config.user = db_params.get("user", "postgres")
-        db_config.password = db_params.get("password", "")
-        db_config.database = db_params.get("database", "postgres")
+        db_config.password = db_params.get("password", "postgres123")
+        db_config.database = db_params.get("database", "isolation_demo")
 
         conn = await asyncpg.connect(db_config.get_url())
         try:
@@ -363,8 +360,6 @@ async def get_demo_page(request: Request) -> HTMLResponse:
 
 
 if __name__ == "__main__":
-    import uvicorn
-
     print("🚀 Запуск сервера на http://localhost:8000")
     print("📝 Убедитесь, что PostgreSQL запущен")
     uvicorn.run(app, host="127.0.0.1", port=8000)
