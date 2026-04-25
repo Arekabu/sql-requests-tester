@@ -3,11 +3,28 @@ name = "sql-requests-tester"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = "==3.12.*"
 dependencies = [
     "asyncpg>=0.31.0",
     "databases>=0.9.0",
     "fastapi>=0.136.1",
     "jinja2>=3.1.6",
+    "python-multipart>=0.0.26",
     "uvicorn>=0.46.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+extend-select = ["I", "N", "UP", "ANN"]
+ignore = ["N818", "ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["ANN001", "ANN101", "ANN102", "ANN201", "ANN202"]
