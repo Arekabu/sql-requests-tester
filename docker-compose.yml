@@ -25,12 +25,6 @@ services:
     container_name: sql_isolation_web
     ports:
       - "8000:8000"
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres123
-      DB_NAME: isolation_demo
     restart: unless-stopped
     depends_on:
       db:
