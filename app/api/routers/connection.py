@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import db_config
 
-connection_router = APIRouter(prefix="/api/v1", tags=["connection"])
+connection_router = APIRouter(tags=["connection"])
 
 
 @connection_router.post("/connect_db")
