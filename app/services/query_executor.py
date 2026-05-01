@@ -7,32 +7,45 @@ async def execute_query(
     query: str, isolation_level: str, conn: asyncpg.Connection
 ) -> dict:
     """Выполняет SQL запрос с заданным уровнем изоляции"""
+
     try:
         await conn.execute(f"SET TRANSACTION ISOLATION LEVEL {isolation_level}")
 
-        query_upper = query.strip().upper()
-        is_select = query_upper.startswith("SELECT") or query_upper.startswith("WITH")
+        commands = [cmd.strip() for cmd in query.split(";") if cmd.strip()]
 
-        if is_select:
-            result = await conn.fetch(query)
-            rows = [dict(row) for row in result]
-            return {
-                "success": True,
-                "rows_count": len(rows),
-                "data": rows,
-                "error": None,
-                "query_type": "SELECT",
-            }
-        else:
-            result = await conn.execute(query)
-            return {
-                "success": True,
-                "rows_count": 0,
-                "data": [],
-                "error": None,
-                "query_type": "MODIFICATION",
-                "message": result,
-            }
+        last_result = None
+        last_select = None
+
+        for cmd in commands:
+            cmd_upper = cmd.upper()
+            is_select = cmd_upper.startswith("SELECT") or cmd_upper.startswith("WITH")
+
+            if is_select:
+                result = await conn.fetch(cmd)
+                rows = [dict(row) for row in result]
+                last_select = {
+                    "success": True,
+                    "rows_count": len(rows),
+                    "data": rows,
+                    "error": None,
+                    "query_type": "SELECT",
+                }
+            else:
+                await conn.execute(cmd)
+                last_result = {
+                    "success": True,
+                    "rows_count": 0,
+                    "data": [],
+                    "error": None,
+                    "query_type": "MODIFICATION",
+                    "message": f"Выполнено: {cmd[:50]}...",
+                }
+
+        if last_select:
+            return last_select
+
+        return last_result or {"success": True, "message": "Все операции выполнены"}
+
     except Exception as e:
         return {
             "success": False,
