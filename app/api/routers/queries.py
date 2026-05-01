@@ -1,18 +1,11 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 from app.config import db_config
+from app.models import SQLQuery
 from app.services import execute_parallel_queries, execute_single_transaction
 
 execute_router = APIRouter(tags=["queries"])
-
-
-class SQLQuery(BaseModel):
-    query1: str
-    query2: str
-    isolation_level: str
-    single_transaction: bool = False
 
 
 @execute_router.post("/execute")

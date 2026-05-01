@@ -2,10 +2,10 @@ import asyncio
 from typing import Any
 
 import asyncpg
-from api.routers.queries import SQLQuery
 from fastapi.responses import JSONResponse
 
 from app.config import db_config
+from app.models import SQLQuery
 
 
 async def execute_query_with_isolation(
