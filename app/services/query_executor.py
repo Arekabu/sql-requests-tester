@@ -12,10 +12,10 @@ async def execute_query_with_isolation(
     try:
         await conn.execute(f"SET TRANSACTION ISOLATION LEVEL {isolation_level}")
 
-        # query_upper = query.strip().upper()
-        # is_select = query_upper.startswith("SELECT") or query_upper.startswith("WITH")
-
         commands = [cmd.strip() for cmd in query.split(";") if cmd.strip()]
+
+        last_select_result = None
+        last_modification_result = None
 
         for cmd in commands:
             cmd_upper = cmd.upper()
@@ -27,7 +27,7 @@ async def execute_query_with_isolation(
             elif cmd_upper == "ROLLBACK":
                 await conn.execute("ROLLBACK")
             elif cmd_upper.startswith("SELECT"):
-                result = await conn.fetch(cmd_upper)
+                result = await conn.fetch(cmd)
                 rows = [dict(row) for row in result]
                 last_select_result = {
                     "success": True,
@@ -47,19 +47,19 @@ async def execute_query_with_isolation(
                     "message": result,
                 }
 
-            if last_select_result:
-                return last_select_result
-            elif last_modification_result:
-                return last_modification_result
-            else:
-                return {
-                    "success": True,
-                    "rows_count": 0,
-                    "data": [],
-                    "error": None,
-                    "query_type": "SUCCESS",
-                    "message": "Все операции выполнены",
-                }
+        if last_select_result:
+            return last_select_result
+        elif last_modification_result:
+            return last_modification_result
+        else:
+            return {
+                "success": True,
+                "rows_count": 0,
+                "data": [],
+                "error": None,
+                "query_type": "SUCCESS",
+                "message": "Все операции выполнены",
+            }
 
     except Exception as e:
         return {
