@@ -1,9 +1,9 @@
 import uvicorn
-from config import BASE_DIR, app_config
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routers import connection_router, execute_router, pages_router
+from app.config import BASE_DIR, app_config
 
 app = FastAPI(title=app_config.title)
 
