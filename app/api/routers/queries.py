@@ -5,10 +5,10 @@ from app.config import db_config
 from app.models import SQLQuery
 from app.services import execute_parallel_queries, execute_single_transaction
 
-router = APIRouter(tags=["queries"])
+execute_router = APIRouter(tags=["queries"])
 
 
-@router.post("/execute")
+@execute_router.post("/execute")
 async def execute_queries(sql_query: SQLQuery) -> JSONResponse:
     if sql_query.single_transaction:
         results = await execute_single_transaction(
