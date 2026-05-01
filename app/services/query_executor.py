@@ -56,14 +56,7 @@ async def execute_queries_sequential(
         finally:
             await conn.close()
 
-    is_modification1 = not query1.strip().upper().startswith(("SELECT", "WITH"))
-
-    if is_modification1:
-        result1 = await run(query1)
-        await asyncio.sleep(0.5)
-        result2 = await run(query2)
-    else:
-        result1, result2 = await asyncio.gather(run(query1), run(query2))
+    result1, result2 = await asyncio.gather(run(query1), run(query2))
 
     return [
         {"query_num": 1, **result1},
