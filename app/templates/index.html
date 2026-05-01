@@ -20,6 +20,13 @@
     <textarea id="query1" rows="5" cols="80" placeholder="SELECT * FROM ..."></textarea>
     <h3>Запрос 2</h3>
     <textarea id="query2" rows="5" cols="80" placeholder="UPDATE ..."></textarea>
+    <div>
+    <label>
+        <input type="checkbox" id="singleTransaction">
+        🔄 Выполнить в одной транзакции
+    </label>
+    <small>(при включении запросы выполняются последовательно, а не параллельно)</small>
+    </div>
     <br><button onclick="execute()">Выполнить параллельно</button>
     <div id="results"></div>
     <script src="/static/script.js"></script>

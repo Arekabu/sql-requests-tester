@@ -21,7 +21,8 @@ async function execute() {
         body: JSON.stringify({
             query1: document.getElementById('query1').value,
             query2: document.getElementById('query2').value,
-            isolation_level: document.getElementById('isolation').value
+            isolation_level: document.getElementById('isolation').value,
+            single_transaction: document.getElementById('singleTransaction').checked
         })
     });
     const data = await response.json();

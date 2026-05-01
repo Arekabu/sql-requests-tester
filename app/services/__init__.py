@@ -1,5 +1,9 @@
-from app.services.query_executor import execute_query_with_isolation
+from app.services.query_executor import (
+    execute_parallel_queries,
+    execute_single_transaction,
+)
 
 __all__ = [
-    "execute_query_with_isolation",
+    "execute_parallel_queries",
+    "execute_single_transaction",
 ]
