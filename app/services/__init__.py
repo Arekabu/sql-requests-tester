@@ -1,9 +1,7 @@
 from app.services.query_executor import (
-    execute_parallel_queries,
-    execute_single_transaction,
+    execute_queries_sequential,
 )
 
 __all__ = [
-    "execute_parallel_queries",
-    "execute_single_transaction",
+    "execute_queries_sequential",
 ]
