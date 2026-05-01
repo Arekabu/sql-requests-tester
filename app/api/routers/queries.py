@@ -3,14 +3,14 @@ from fastapi.responses import JSONResponse
 
 from app.config import db_config
 from app.models import SQLQuery
-from app.services import execute_queries_sequential
+from app.services import execute_queries_parallel
 
 execute_router = APIRouter(tags=["queries"])
 
 
 @execute_router.post("/execute")
 async def execute_queries(sql_query: SQLQuery) -> JSONResponse:
-    results = await execute_queries_sequential(
+    results = await execute_queries_parallel(
         sql_query.query1,
         sql_query.query2,
         sql_query.isolation_level,

@@ -6,7 +6,7 @@ import asyncpg
 async def execute_query(
     query: str, isolation_level: str, conn: asyncpg.Connection
 ) -> dict:
-    """Выполняет SQL запрос в транзакции с заданным уровнем изоляции"""
+    """Выполняет SQL запрос с заданным уровнем изоляции"""
     try:
         await conn.execute(f"SET TRANSACTION ISOLATION LEVEL {isolation_level}")
 
@@ -43,10 +43,10 @@ async def execute_query(
         }
 
 
-async def execute_queries_sequential(
+async def execute_queries_parallel(
     query1: str, query2: str, isolation_level: str, db_url: str
 ) -> list[dict]:
-    """Выполняет запросы последовательно в разных транзакциях"""
+    """Выполняет запросы параллельно в разных транзакциях"""
 
     async def run(query: str) -> dict:
         conn = await asyncpg.connect(db_url)

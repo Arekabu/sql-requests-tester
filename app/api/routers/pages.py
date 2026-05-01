@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
 from app.config import BASE_DIR
-from app.constants import ISOLATION_LEVELS
+from app.models import IsolationLevel
 
 pages_router = APIRouter(tags=["pages"])
 
@@ -16,7 +16,7 @@ async def get_demo_page(request: Request) -> HTMLResponse:
     html_content = html_path.read_text(encoding="utf-8")
 
     options_html = "\n".join(
-        [f'<option value="{level}">{level}</option>' for level in ISOLATION_LEVELS]
+        [f'<option value="{level}">{level}</option>' for level in IsolationLevel]
     )
 
     html_content = html_content.replace("{options_html}", options_html)

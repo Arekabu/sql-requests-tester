@@ -1,5 +1,6 @@
-from app.models.query import SQLQuery
+from app.models.query import IsolationLevel, SQLQuery
 
 __all__ = [
     "SQLQuery",
+    "IsolationLevel",
 ]
