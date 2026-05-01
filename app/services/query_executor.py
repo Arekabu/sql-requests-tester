@@ -12,29 +12,55 @@ async def execute_query_with_isolation(
     try:
         await conn.execute(f"SET TRANSACTION ISOLATION LEVEL {isolation_level}")
 
-        query_upper = query.strip().upper()
-        is_select = query_upper.startswith("SELECT") or query_upper.startswith("WITH")
+        # query_upper = query.strip().upper()
+        # is_select = query_upper.startswith("SELECT") or query_upper.startswith("WITH")
 
-        if is_select:
-            result = await conn.fetch(query)
-            rows = [dict(row) for row in result]
-            return {
-                "success": True,
-                "rows_count": len(rows),
-                "data": rows,
-                "error": None,
-                "query_type": "SELECT",
-            }
-        else:
-            result = await conn.execute(query)
-            return {
-                "success": True,
-                "rows_count": 0,
-                "data": [],
-                "error": None,
-                "query_type": "MODIFICATION",
-                "message": result,
-            }
+        commands = [cmd.strip() for cmd in query.split(";") if cmd.strip()]
+
+        for cmd in commands:
+            cmd_upper = cmd.upper()
+
+            if cmd_upper == "BEGIN":
+                await conn.execute("BEGIN")
+            elif cmd_upper == "COMMIT":
+                await conn.execute("COMMIT")
+            elif cmd_upper == "ROLLBACK":
+                await conn.execute("ROLLBACK")
+            elif cmd_upper.startswith("SELECT"):
+                result = await conn.fetch(cmd_upper)
+                rows = [dict(row) for row in result]
+                last_select_result = {
+                    "success": True,
+                    "rows_count": len(rows),
+                    "data": rows,
+                    "error": None,
+                    "query_type": "SELECT",
+                }
+            else:
+                result = await conn.execute(cmd)
+                last_modification_result = {
+                    "success": True,
+                    "rows_count": 0,
+                    "data": [],
+                    "error": None,
+                    "query_type": "MODIFICATION",
+                    "message": result,
+                }
+
+            if last_select_result:
+                return last_select_result
+            elif last_modification_result:
+                return last_modification_result
+            else:
+                return {
+                    "success": True,
+                    "rows_count": 0,
+                    "data": [],
+                    "error": None,
+                    "query_type": "SUCCESS",
+                    "message": "Все операции выполнены",
+                }
+
     except Exception as e:
         return {
             "success": False,
@@ -52,14 +78,13 @@ async def execute_single_transaction(
     results = []
     conn = await asyncpg.connect(db_url)
     try:
-        async with conn.transaction():
-            await conn.execute(f"SET TRANSACTION ISOLATION LEVEL {isolation_level}")
+        await conn.execute(f"SET TRANSACTION ISOLATION LEVEL {isolation_level}")
 
-            result1 = await execute_query_with_isolation(query1, isolation_level, conn)
-            results.append({"query_num": 1, **result1})
+        result1 = await execute_query_with_isolation(query1, isolation_level, conn)
+        results.append({"query_num": 1, **result1})
 
-            result2 = await execute_query_with_isolation(query2, isolation_level, conn)
-            results.append({"query_num": 2, **result2})
+        result2 = await execute_query_with_isolation(query2, isolation_level, conn)
+        results.append({"query_num": 2, **result2})
     finally:
         await conn.close()
     return results
@@ -70,12 +95,11 @@ async def execute_parallel_queries(
 ) -> list[dict]:
     """Два запроса параллельно в разных транзакциях"""
 
-    async def run_in_connection(query: str, level: str) -> JSONResponse:
+    async def run_in_connection(query: str, level: str) -> JSONResponse | dict:
         try:
             conn = await asyncpg.connect(db_url)
             try:
-                async with conn.transaction():
-                    return await execute_query_with_isolation(query, level, conn)
+                return await execute_query_with_isolation(query, level, conn)
             finally:
                 await conn.close()
         except Exception as e:
