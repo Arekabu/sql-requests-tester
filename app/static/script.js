@@ -97,7 +97,6 @@ async function execute() {
 
         const data = await response.json();
 
-        // Логируем результаты
         for (const result of data.results) {
             if (result.success) {
                 addLog(`✅ Запрос ${result.query_num}: успешно (${result.rows_count} строк)`, 'success');
