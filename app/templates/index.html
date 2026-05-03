@@ -22,6 +22,13 @@
     <textarea id="query2" rows="5" cols="80" placeholder="UPDATE ..."></textarea>
     <br><button onclick="execute()">Выполнить параллельно</button>
     <div id="results"></div>
+    <div class="logs-panel">
+        <h3>📋 Логи запросов</h3>
+        <div id="logs" class="logs-container">
+            <div class="log-info">⏳ Логи будут появляться здесь...</div>
+        </div>
+        <button onclick="clearLogs()">🗑️ Очистить логи</button>
+    </div>
     <script src="/static/script.js"></script>
 </body>
 </html>

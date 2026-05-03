@@ -7,3 +7,37 @@ button { padding: 10px 20px; margin: 10px; cursor: pointer; }
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: #f5f5f5; }
+.logs-container {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 10px;
+    border-radius: 5px;
+    height: 200px;
+    overflow-y: auto;
+    margin: 10px 0;
+}
+
+.log-entry {
+    padding: 4px;
+    border-bottom: 1px solid #333;
+    font-family: monospace;
+}
+
+.log-time {
+    color: #6a9955;
+    margin-right: 10px;
+}
+
+.log-success {
+    color: #4ec9b0;
+}
+
+.log-error {
+    color: #f48771;
+}
+
+.log-query {
+    color: #ce9178;
+}
