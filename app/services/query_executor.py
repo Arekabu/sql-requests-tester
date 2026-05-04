@@ -4,7 +4,7 @@ import asyncpg
 
 
 async def execute_query(
-    query: str, isolation_level: str, conn: asyncpg.Connection
+        query: str, isolation_level: str, conn: asyncpg.Connection
 ) -> dict:
     """Выполняет SQL запрос с заданным уровнем изоляции"""
 
@@ -13,26 +13,27 @@ async def execute_query(
 
         commands = [cmd.strip() for cmd in query.split(";") if cmd.strip()]
 
-        last_result = None
-        last_select = None
+        select_results = []
+        last_modification = None
 
-        for cmd in commands:
+        for idx, cmd in enumerate(commands):
             cmd_upper = cmd.upper()
             is_select = cmd_upper.startswith("SELECT") or cmd_upper.startswith("WITH")
 
             if is_select:
                 result = await conn.fetch(cmd)
                 rows = [dict(row) for row in result]
-                last_select = {
+                select_results.append({
                     "success": True,
                     "rows_count": len(rows),
                     "data": rows,
                     "error": None,
                     "query_type": "SELECT",
-                }
+                    "select_number": len(select_results) + 1,
+                })
             else:
                 await conn.execute(cmd)
-                last_result = {
+                last_modification = {
                     "success": True,
                     "rows_count": 0,
                     "data": [],
@@ -41,10 +42,20 @@ async def execute_query(
                     "message": f"Выполнено: {cmd[:50]}...",
                 }
 
-        if last_select:
-            return last_select
+        if select_results:
 
-        return last_result or {"success": True, "message": "Все операции выполнены"}
+            if len(select_results) == 1:
+                return select_results[0]
+
+            return {
+                "success": True,
+                "is_multi_select": True,
+                "selects": select_results,
+                "query_type": "MULTI_SELECT",
+                "selects_count": len(select_results),
+            }
+
+        return last_modification or {"success": True, "message": "Все операции выполнены"}
 
     except Exception as e:
         return {
