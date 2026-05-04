@@ -2,19 +2,19 @@
 function addLog(message, type = 'info') {
     const timestamp = new Date().toLocaleTimeString();
     const logsDiv = document.getElementById('logs');
-    
+
     if (!logsDiv) return;
-    
+
     const entry = document.createElement('div');
     entry.className = 'log-entry';
     entry.innerHTML = `
         <span class="log-time">[${timestamp}]</span>
         <span class="log-${type}">${escapeHtml(message)}</span>
     `;
-    
+
     logsDiv.appendChild(entry);
     entry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    
+
     while (logsDiv.children.length > 100) {
         logsDiv.removeChild(logsDiv.firstChild);
     }
@@ -43,9 +43,9 @@ async function connect() {
         password: document.getElementById('password').value,
         database: document.getElementById('database').value
     };
-    
+
     addLog(`🔌 Подключение к ${data.host}:${data.port}/${data.database}`, 'info');
-    
+
     try {
         const response = await fetch('/connect_db', {
             method: 'POST',
@@ -53,7 +53,7 @@ async function connect() {
             body: JSON.stringify(data)
         });
         const result = await response.json();
-        
+
         if (result.status === 'success') {
             addLog(`✅ ${result.message}`, 'success');
         } else {
@@ -71,19 +71,19 @@ async function execute() {
     const query1 = document.getElementById('query1').value;
     const query2 = document.getElementById('query2').value;
     const isolation = document.getElementById('isolation').value;
-    
+
     if (!query1.trim() || !query2.trim()) {
         addLog('⚠️ Введите оба запроса', 'error');
         alert('Введите оба запроса');
         return;
     }
-    
+
     addLog(`🚀 Запуск запросов (${isolation})`, 'info');
     addLog(`📝 Запрос 1: ${query1.substring(0, 80)}${query1.length > 80 ? '...' : ''}`, 'query');
     addLog(`📝 Запрос 2: ${query2.substring(0, 80)}${query2.length > 80 ? '...' : ''}`, 'query');
-    
+
     const startTime = Date.now();
-    
+
     try {
         const response = await fetch('/execute', {
             method: 'POST',
@@ -94,12 +94,12 @@ async function execute() {
                 isolation_level: isolation
             })
         });
-        
+
         const duration = Date.now() - startTime;
         addLog(`📡 Ответ получен за ${duration}мс`, 'success');
-        
+
         const data = await response.json();
-        
+
         // Логируем результаты
         for (const result of data.results) {
             if (result.success) {
@@ -112,10 +112,10 @@ async function execute() {
                 addLog(`❌ Запрос ${result.query_num}: ${result.error}`, 'error');
             }
         }
-        
+
         // Отображаем результаты
         displayResults(data.results);
-        
+
     } catch (error) {
         addLog(`❌ Ошибка выполнения: ${error.message}`, 'error');
         document.getElementById('results').innerHTML = `<div class="error">❌ Ошибка: ${error.message}</div>`;
@@ -125,12 +125,12 @@ async function execute() {
 // ========== ОТОБРАЖЕНИЕ РЕЗУЛЬТАТОВ ==========
 function displayResults(results) {
     let html = '<h3>📊 Результаты:</h3>';
-    
+
     for (const result of results) {
         html += '<div class="result">';
         html += `<div class="result-header">📝 Запрос ${result.query_num}</div>`;
         html += '<div class="result-content">';
-        
+
         if (!result.success) {
             html += `<div class="error">❌ ${escapeHtml(result.error)}</div>`;
         }

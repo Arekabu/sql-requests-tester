@@ -4,7 +4,7 @@ import asyncpg
 
 
 async def execute_query(
-        query: str, isolation_level: str, conn: asyncpg.Connection
+    query: str, isolation_level: str, conn: asyncpg.Connection
 ) -> dict:
     """Выполняет SQL запрос с заданным уровнем изоляции"""
 
@@ -23,14 +23,16 @@ async def execute_query(
             if is_select:
                 result = await conn.fetch(cmd)
                 rows = [dict(row) for row in result]
-                select_results.append({
-                    "success": True,
-                    "rows_count": len(rows),
-                    "data": rows,
-                    "error": None,
-                    "query_type": "SELECT",
-                    "select_number": len(select_results) + 1,
-                })
+                select_results.append(
+                    {
+                        "success": True,
+                        "rows_count": len(rows),
+                        "data": rows,
+                        "error": None,
+                        "query_type": "SELECT",
+                        "select_number": len(select_results) + 1,
+                    }
+                )
             else:
                 await conn.execute(cmd)
                 last_modification = {
@@ -43,7 +45,6 @@ async def execute_query(
                 }
 
         if select_results:
-
             if len(select_results) == 1:
                 return select_results[0]
 
@@ -55,7 +56,10 @@ async def execute_query(
                 "selects_count": len(select_results),
             }
 
-        return last_modification or {"success": True, "message": "Все операции выполнены"}
+        return last_modification or {
+            "success": True,
+            "message": "Все операции выполнены",
+        }
 
     except Exception as e:
         return {
