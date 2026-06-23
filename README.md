@@ -30,8 +30,7 @@ docker-compose up -d
 # Приложение доступно по адресу: http://localhost:8000
 ```
 
-
-Запуск без Docker (только веб-сервер)
+### Запуск без Docker (только веб-сервер)
 
 Если у вас уже есть запущенный PostgreSQL, вы можете запустить только веб-сервер:
 
@@ -49,10 +48,91 @@ pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Переменные окружения
-Переменная	Значение по умолчанию	Описание
-DB_HOST	localhost	Хост PostgreSQL
-DB_PORT	5432	Порт PostgreSQL
-DB_USER	postgres	Пользователь PostgreSQL
-DB_PASSWORD	password	Пароль PostgreSQL
-DB_NAME	isolation_demo	Имя базы данных
+### Переменные окружения
+
+| Переменная      | Значение по умолчанию | Описание                     |
+|-----------------|----------------------|------------------------------|
+| DB_HOST         | localhost            | Хост PostgreSQL              |
+| DB_PORT         | 5432                 | Порт PostgreSQL              |
+| DB_USER         | postgres             | Пользователь PostgreSQL      |
+| DB_PASSWORD     | password             | Пароль PostgreSQL            |
+| DB_NAME         | isolation_demo       | Имя базы данных              |
+
+## 🛠️ Технологии
+
+| Компонент          | Технология                    |
+|--------------------|-------------------------------|
+| Язык               | Python 3.14                   |
+| Веб-фреймворк      | FastAPI                       |
+| Работа с БД        | asyncpg                       |
+| Управление пакетами| uv (с поддержкой pip)         |
+| Контейнеризация    | Docker + Docker Compose       |
+| База данных        | PostgreSQL 17 Alpine          |
+
+## 🧪 Использование
+
+1. **Подключение к БД**: Введите параметры подключения и нажмите "Подключиться"
+2. **Выбор уровня изоляции**: Выберите один из четырёх уровней:
+   - READ UNCOMMITTED
+   - READ COMMITTED
+   - REPEATABLE READ
+   - SERIALIZABLE
+3. **Ввод запросов**: Введите два SQL-запроса
+4. **Выполнение**: Нажмите "Выполнить параллельно" для запуска
+
+### Пример запросов
+
+```sql
+-- Запрос 1 (SELECT)
+SELECT * FROM users WHERE id = 1;
+
+-- Запрос 2 (UPDATE)
+UPDATE users SET balance = balance + 100 WHERE id = 1;
+```
+
+Результаты выполнения отображаются в виде таблиц с данными.
+
+## 📡 API Endpoints
+
+| Метод | Эндпоинт           | Описание                           |
+|-------|--------------------|------------------------------------|
+| POST  | `/connect_db`      | Подключение к БД                   |
+| GET   | `/get_tables`      | Получение списка таблиц            |
+| POST  | `/execute`         | Выполнение двух запросов параллельно |
+| GET   | `/`                | Главная страница                   |
+
+### Пример запроса к `/execute`
+
+```json
+{
+  "query1": "SELECT * FROM users WHERE id = 1;",
+  "query2": "UPDATE users SET balance = balance + 100 WHERE id = 1;",
+  "isolation_level": "READ COMMITTED"
+}
+```
+
+## 🐳 Docker-образ
+
+Сборка образа:
+
+```bash
+docker build -t sql-isolation-tester .
+docker-compose up -d
+```
+
+## 📝 Разработка
+
+### Форматирование кода
+
+Проект использует `ruff` для линтинга:
+
+```bash
+uv tool run ruff check .
+uv tool run ruff format .
+```
+
+### Пре-коммит хуки
+
+```bash
+uv tool run pre-commit install
+```
