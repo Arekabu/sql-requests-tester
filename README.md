@@ -21,7 +21,7 @@
 
 ```bash
 # Клонируйте репозиторий
-git clone git@github.com:Arekabu/sql-requests-tester.git
+git clone https://github.com/Arekabu/sql-requests-tester.git
 cd sql-requests-tester
 
 # Запустите PostgreSQL и веб-сервер
