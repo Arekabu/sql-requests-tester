@@ -86,17 +86,17 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 -- Запрос 1 (SELECT)
 SELECT
 	age age1
-FROM sql.trainers WHERE name = 'Misty';
+FROM students WHERE name = 'Misty';
 SELECT pg_sleep(2);
 SELECT
 	age age2
-FROM sql.trainers WHERE name = 'Misty';
+FROM students WHERE name = 'Misty';
 
 -- Запрос 2 (UPDATE)
-UPDATE sql.trainers SET age = age + 10 WHERE name = 'Misty';
+UPDATE students SET age = age + 10 WHERE name = 'Misty';
 SELECT
 	age age_real
-FROM sql.trainers WHERE name = 'Misty';
+FROM students WHERE name = 'Misty';
 ```
 
 Результаты выполнения отображаются в виде таблиц с данными.
@@ -114,8 +114,8 @@ FROM sql.trainers WHERE name = 'Misty';
 
 ```json
 {
-  "query1": "SELECT * FROM users WHERE id = 1;",
-  "query2": "UPDATE users SET balance = balance + 100 WHERE id = 1;",
+  "query1": "SELECT * FROM students WHERE name = 'Misty';",
+  "query2": UPDATE students SET age = age + 10 WHERE name = 'Misty';,
   "isolation_level": "READ COMMITTED"
 }
 ```
