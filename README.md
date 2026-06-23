@@ -115,7 +115,7 @@ FROM students WHERE name = 'Misty';
 ```json
 {
   "query1": "SELECT * FROM students WHERE name = 'Misty';",
-  "query2": UPDATE students SET age = age + 10 WHERE name = 'Misty';,
+  "query2": "UPDATE students SET age = age + 10 WHERE name = 'Misty';",
   "isolation_level": "READ COMMITTED"
 }
 ```
