@@ -105,8 +105,17 @@ UPDATE users SET balance = balance + 100 WHERE id = 1;
 
 ```json
 {
-  "query1": "SELECT * FROM users WHERE id = 1;",
-  "query2": "UPDATE users SET balance = balance + 100 WHERE id = 1;",
+  "query1": "SELECT
+	age age1
+FROM sql.trainers WHERE name = 'Misty';
+SELECT pg_sleep(2);
+SELECT
+	age age2
+FROM sql.trainers WHERE name = 'Misty';",
+  "query2": "UPDATE sql.trainers SET age = age + 10 WHERE name = 'Misty';
+SELECT
+	age age_real
+FROM sql.trainers WHERE name = 'Misty';",
   "isolation_level": "READ COMMITTED"
 }
 ```
