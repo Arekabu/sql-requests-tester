@@ -28,3 +28,29 @@ cd sql-requests-tester
 docker-compose up -d
 
 # Приложение доступно по адресу: http://localhost:8000
+
+
+Запуск без Docker (только веб-сервер)
+
+Если у вас уже есть запущенный PostgreSQL, вы можете запустить только веб-сервер:
+bash
+
+# Установка зависимостей через uv (рекомендуется)
+uv venv
+uv sync
+
+# Или через pip
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# Запуск сервера
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+Переменные окружения
+Переменная	Значение по умолчанию	Описание
+DB_HOST	localhost	Хост PostgreSQL
+DB_PORT	5432	Порт PostgreSQL
+DB_USER	postgres	Пользователь PostgreSQL
+DB_PASSWORD	password	Пароль PostgreSQL
+DB_NAME	isolation_demo	Имя базы данных
